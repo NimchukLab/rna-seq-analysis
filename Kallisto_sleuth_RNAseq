@@ -1,0 +1,83 @@
+#Kallisto RNAseq analysis
+
+module load Kallisto
+
+#Build index for Kallisto with transcriptome
+kallisto index -i At_Transcript_index_kal Arabidopsis_thaliana.TAIR10.cdna.all.fa
+
+#Quanitification of raw fastq files
+kallisto quant -i At_Transcript_index_kal -o COL-0_B1_kal -b 100 -t 6 COL-0_B1_GAATGAGA-GAGGCATT_S32_L002_R1_001.fastq.gz COL-0_B1_GAATGAGA-GAGGCATT_S32_L002_R2_001.fastq.gz
+kallisto quant -i At_Transcript_index_kal -o COL-0_B2_kal -b 100 -t 6 COL-0_B2_AACTGTAG-ACGCCGCA_S33_L002_R1_001.fastq.gz COL-0_B2_AACTGTAG-ACGCCGCA_S33_L002_R2_001.fastq.gz
+kallisto quant -i At_Transcript_index_kal -o COL-0_B3_kal -b 100 -t 6 COL-0_B3_GGTCACGA-GTATTATG_S34_L002_R1_001.fastq.gz COL-0_B3_GGTCACGA-GTATTATG_S34_L002_R2_001.fastq.gz
+
+kallisto quant -i At_Transcript_index_kal -o CRN_B1_kal -b 100 -t 6 CRN_B1_CTGCTTCC-GATAGATC_S35_L002_R1_001.fastq.gz CRN_B1_CTGCTTCC-GATAGATC_S35_L002_R2_001.fastq.gz
+kallisto quant -i At_Transcript_index_kal -o CRN_B2_kal -b 100 -t 6 CRN_B2_TCATCCTT-AGCGAGCT_S36_L002_R1_001.fastq.gz CRN_B2_TCATCCTT-AGCGAGCT_S36_L002_R2_001.fastq.gz
+kallisto quant -i At_Transcript_index_kal -o CRN_B3_kal -b 100 -t 6 CRN_B3_AGGTTATA-CAGTTCCG_S37_L002_R1_001.fastq.gz CRN_B3_AGGTTATA-CAGTTCCG_S37_L002_R2_001.fastq.gz
+
+#transfer files to directory accessible by R
+##########____##########____##########____##########_RStudio_##########____##########____##########____##########
+
+> if (!requireNamespace("BiocManager", quietly = TRUE))
++     install.packages("BiocManager")
+> BiocManager::install("rhdf5")
+> BiocManager::install("devtools")
+> BiocManager::install("shiny")
+
+> library(rhdf5)
+> library(devtools)
+> library(shiny)
+
+> devtools::install_github("pachterlab/sleuth")
+> library(sleuth)
+
+#set input and output directories
+datapath = "/Users/amala/Desktop/RNAseq/KallQuant/input"
+resultdir = '/Users/amala/Desktop/RNAseq/KallQuant/result'
+setwd(resultdir)
+
+#create a sample to condition metadata description
+sample_id = dir(file.path(datapath))
+kal_dirs = file.path(datapath, sample_id)
+print(kal_dirs)
+
+#sample to condition metadata
+sample = c("COL-0_B1", "COL-0_B2", "COL-0_B3", "CRN_B1","CRN_B2","CRN_B3")
+condition = c("WT", "WT", "WT","crn","crn","crn")
+s2c = data.frame(sample,condition)
+s2cc <- dplyr::mutate(s2c, path = kal_dirs)
+
+#run sleuth on the data
+so <- sleuth_prep(s2cc, extra_bootstrap_summary = TRUE)
+so <- sleuth_fit(so, ~condition, 'full')
+so <- sleuth_fit(so, ~1, 'reduced')
+so <- sleuth_lrt(so, 'reduced', 'full')
+models(so)
+
+#summarize the sleuth results and view 20 most significant DE transcripts
+sleuth_table <- sleuth_results(so, 'reduced:full', 'lrt', show_all = FALSE)
+sleuth_significant <- dplyr::filter(sleuth_table, qval <= 0.05)
+head(sleuth_significant, 20)
+
+#create a csv file with statistics on the data
+write.csv(sleuth_significant,"Sleuth_sig.csv")
+
+#live analysis using shiny
+sleuth_live(so)
+
+#create file with TPM count data 
+#raw counts
+sleuth_matrix <- sleuth_to_matrix(so, 'obs_raw', 'tpm')
+#normalized counts
+sleuth_matrix_2 <- sleuth_to_matrix(so, 'obs_norm', 'tpm')
+head(sleuth_matrix_2)
+write.csv(sleuth_matrix_2,"sleuth_matrix_includclv33.csv")
+
+#plot an example DE transcript result
+p1 = plot_bootstrap(so, "AT5G62230.1", units = "est_counts", color_by = "condition")
+p2 = plot_pca(so, color_by = 'condition')
+
+#Print out the plots created above and store in a single PDF file
+pdf(file="SleuthResults.pdf")
+print(p1)
+print(p2)
+dev.off()
