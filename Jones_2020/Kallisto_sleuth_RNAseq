@@ -3,6 +3,9 @@
 #Col-0 3 replicates, crn 3 replicates paired end seq, 50bp Illumina 
 #aligned to TAIR10 transcriptome from EnsemblPlants A. thaliana
 
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
+
+
 module load Kallisto
 
 #Build index for Kallisto with transcriptome
