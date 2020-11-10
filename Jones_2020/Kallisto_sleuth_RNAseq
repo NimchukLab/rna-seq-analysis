@@ -1,4 +1,7 @@
 #Kallisto RNAseq analysis
+#Code used to analyze raw data for paper https://www.cell.com/current-biology/fulltext/S0960-9822(20)31512-8 
+#Col-0 3 replicates, crn 3 replicates paired end seq, 50bp Illumina 
+#aligned to TAIR10 transcriptome from EnsemblPlants A. thaliana
 
 module load Kallisto
 
