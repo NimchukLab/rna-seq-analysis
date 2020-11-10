@@ -1,0 +1,191 @@
+#HISAT2/edgeR with normalization code RNAseq
+
+module load hisat2
+
+#build reference
+hisat2-build -f TAIR10.1_genomic.fna ref_index/ath
+
+#align sequence
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 COL-0_B1_GAATGAGA-GAGGCATT_S32_L002_R1_001.fastq.gz -2 COL-0_B1_GAATGAGA-GAGGCATT_S32_L002_R2_001.fastq.gz -S COL-0_B1_sam 
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 COL-0_B2_AACTGTAG-ACGCCGCA_S33_L002_R1_001.fastq.gz -2 COL-0_B2_AACTGTAG-ACGCCGCA_S33_L002_R2_001.fastq.gz -S COL-0_B2_sam
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 COL-0_B3_GGTCACGA-GTATTATG_S34_L002_R1_001.fastq.gz -2 COL-0_B3_GGTCACGA-GTATTATG_S34_L002_R2_001.fastq.gz -S COL-0_B3_sam
+
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 CRN_B1_CTGCTTCC-GATAGATC_S35_L002_R1_001.fastq.gz -2 CRN_B1_CTGCTTCC-GATAGATC_S35_L002_R2_001.fastq.gz -S CRN_B1_sam 
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 CRN_B2_TCATCCTT-AGCGAGCT_S36_L002_R1_001.fastq.gz -2 CRN_B2_TCATCCTT-AGCGAGCT_S36_L002_R2_001.fastq.gz -S CRN_B2_sam 
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 CRN_B3_AGGTTATA-CAGTTCCG_S37_L002_R1_001.fastq.gz -2 CRN_B3_AGGTTATA-CAGTTCCG_S37_L002_R2_001.fastq.gz -S CRN_B3_sam
+
+#convert sam to bam format
+samtools view -bS COL-0_B1_sam >UCOL-0_B1_dta.bam
+samtools sort -@ 8 -o COL-0_B1_dta.bam UCOL-0_B1_dta.bam
+
+samtools view -bS COL-0_B2_sam >UCOL-0_B2_dta.bam
+samtools sort -@ 8 -o COL-0_B2_dta.bam UCOL-0_B2_dta.bam
+
+samtools view -bS COL-0_B3_sam >UCOL-0_B3_dta.bam
+samtools sort -@ 8 -o COL-0_B3_dta.bam UCOL-0_B3_dta.bam
+
+samtools view -bS CRN_B1_sam >UCRN_B1_dta.bam
+samtools sort -@ 8 -o CRN_B1_dta.bam UCRN_B1_dta.bam
+
+samtools view -bS CRN_B2_sam >UCRN_B2_dta.bam
+samtools sort -@ 8 -o CRN_B2_dta.bam UCRN_B2_dta.bam
+
+samtools view -bS CRN_B3_sam >UCRN_B3_dta.bam
+samtools sort -@ 8 -o CRN_B3_dta.bam UCRN_B3_dta.bam
+
+#use featureCounts to count reads
+module load subread 1.5.1
+
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o COL-0_B2_dta.txt COL-0_B2_dta.bam
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o COL-0_B1_dta.txt COL-0_B1_dta.bam
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o COL-0_B3_dta.txt COL-0_B3_dta.bam
+
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o CRN_B1_dta.txt CRN_B1_dta.bam
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o CRN_B2_dta.txt CRN_B2_dta.bam
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o CRN_B3_dta.txt CRN_B3_dta.bam
+
+#move files to directory accessible from RStudio
+////////////////////////////////////////////////////////////////RStudio////////////////////////////////////////////////////////////////////////////////////////////////
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("EDAseq")
+BiocManager::install("purrr")
+BiocManager::install("tidyverse")
+BiocManager::install("edgeR")
+BiocManager::install("statmod")
+
+library(BiocManager)
+library(EDAseq)
+library(purrr)
+library(tidyverse)
+library(readr)
+library(edgeR)
+library(RUVSeq)
+library(statmod)
+library(RColorBrewer)
+
+#grab the files and create function to read them into R
+setwd("/Users/amala/Desktop/fcounts/counts")
+f_files<- list.files("/Users/amala/Desktop/fcounts/counts", pattern = "*.txt", full.names = TRUE)
+read_in_feature_counts<- function(file){
+       cnt<- read_tsv(file, col_names =TRUE, comment = "#")
+       cnt<- cnt %>% dplyr::select(-Chr, -Start, -End, -Strand, -Length)
+       return(cnt)
+}
+
+raw_counts<- map(f_files, read_in_feature_counts)
+raw_counts_df<- purrr::reduce(raw_counts, inner_join)
+data_raw<-raw_counts_df
+
+#create a text file that will allow you to sort based on replicates of each genotype
+////////#example txt file////////////////////////////////////////////////////////////////////////
+##target3.txt
+"sample","group"
+"COL-0_B1","WT"
+"COL-0_B2","WT"
+"COL-0_B3","WT"
+"CRN_B1","crn"
+"CRN_B2","crn"
+"CRN_B3","crn"
+//////////////////////////////////////////////////////////////////////////////////////////
+
+#change directory to the one with the txt file above
+setwd("/Users/amala/Desktop/fcounts")
+target3 <- read.delim("/Users/amala/Desktop/fcounts/target3.txt", stringsAsFactors=FALSE)
+group2 <- paste(target3$group)
+group3 <- factor(group2)
+
+z <- DGEList(counts=raw_counts_df[,-1],group=group3,genes=raw_counts_df[,1,drop=FALSE])
+options(digits=3)
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+#create a file that will allow you to converge gene number with ATG gene ID in the DEG list later
+geneids<-z$genes
+geneids<-as.character(geneids[,1])
+z2<-as.matrix(z)
+rownames(z2)<-geneids
+write.csv(geneids, "/Users/amala/Desktop/fcounts/geneids.csv")
+-----------------------------------------------------------------------------------------------------------------------------------------------
+
+keep <- filterByExpr(z)
+z <- z[keep, , keep.lib.sizes=FALSE]
+table(keep)
+
+x <- as.factor(rep(c("WT", "crn"), each=3))
+set <- newSeqExpressionSet(as.matrix(z), phenoData = data.frame(x, row.names=colnames(z)))
+pData(set)
+
+#Plots pre normalization
+colors <- brewer.pal(3, "Set2")
+plotRLE(set, outline=FALSE, ylim=c(-4, 4), col=colors[x]) 
+plotPCA(set, col=colors[x], cex=1.2)
+
+#normalization, upper quartile median 
+set <- betweenLaneNormalization(set, which="upper")
+design <- model.matrix(~x, data=pData(set))
+z <- DGEList(counts=counts(set), group=x)
+z <- calcNormFactors(z, method="upperquartile") 
+z <- estimateGLMCommonDisp(z, design)
+z <- estimateGLMTagwiseDisp(z, design)
+fit <- glmFit(z, design) 
+lrt <- glmLRT(fit, contrast=c(1,-1))    #subtract WT from crn to see what is upregulated in crn
+top <- topTags(lrt, n=nrow(set))$table
+
+#RUVSeq normalization
+empirical <- rownames(set)[which(!(rownames(set) %in% rownames(top)[1:5000]))]
+set2 <- RUVg(set, empirical, k=1)
+pData(set2)
+
+#new Plots after normalization to check the process
+plotRLE(set2, outline=FALSE, ylim=c(-1, 1), col=colors[x])
+plotPCA(set2, col=colors[x], cex=1.2)
+
+z <- DGEList(counts=counts(set2), group=x)
+keep <- filterByExpr(z)
+z <- z[keep, , keep.lib.sizes=FALSE]
+z <- calcNormFactors(z)
+
+design <- model.matrix(~0+group3) 
+colnames(design) <- levels(group3)
+
+z <- estimateDisp(z, design, robust=TRUE)
+fit <- glmQLFit(z, design, robust=TRUE)
+
+#comparison to make the DEGs
+CRNvsWT <- makeContrasts(crn-WT, levels=design)
+res1 <- glmQLFTest(fit, contrast=CRNvsWT)
+
+#Make MD plot with p-value <0.001 for example
+is.de1 <- decideTestsDGE(res1, p.value=0.001)
+plotMD(res1, status=is.de1, values=c(1,-1), col=c("red","blue"), xlab = "Average logCPM", ylab = "logFC", ylim = c(-10, 10), legend=FALSE)
+
+#creates a csv file with values for the top 460 genes
+topTags(res1, n=460)-> ddd  
+ff <- as.data.frame(ddd[["table"]])
+write.csv(ff, "/Users/amala/Desktop/fcounts/EdgeR_RUV_DE_AT.csv")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
