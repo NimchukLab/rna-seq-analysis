@@ -1,4 +1,7 @@
 #HISAT2/edgeR with normalization code RNAseq
+#Code used to analyze raw data for paper https://www.cell.com/current-biology/fulltext/S0960-9822(20)31512-8 
+#Col-0 3 replicates, crn 3 replicates paired end seq, 50bp Illumina 
+#aligned to TAIR10.1 from NCBI
 
 module load hisat2
 
