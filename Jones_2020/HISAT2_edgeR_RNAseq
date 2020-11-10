@@ -3,6 +3,8 @@
 #Col-0 3 replicates, crn 3 replicates paired end seq, 50bp Illumina 
 #aligned to TAIR10.1 from NCBI
 
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
+
 module load hisat2
 
 #build reference
