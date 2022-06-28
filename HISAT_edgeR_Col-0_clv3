@@ -1,0 +1,208 @@
+
+module load hisat2
+
+#build reference
+hisat2-build -f TAIR10.1_genomic.fna ref_index/ath
+
+#align sequence
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 COL-0_B1_GAATGAGA-GAGGCATT_S32_L002_R1_001.fastq.gz -2 COL-0_B1_GAATGAGA-GAGGCATT_S32_L002_R2_001.fastq.gz -S COL-0_B1_sam 
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 COL-0_B2_AACTGTAG-ACGCCGCA_S33_L002_R1_001.fastq.gz -2 COL-0_B2_AACTGTAG-ACGCCGCA_S33_L002_R2_001.fastq.gz -S COL-0_B2_sam
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 COL-0_B3_GGTCACGA-GTATTATG_S34_L002_R1_001.fastq.gz -2 COL-0_B3_GGTCACGA-GTATTATG_S34_L002_R2_001.fastq.gz -S COL-0_B3_sam
+
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 CRN_B1_CTGCTTCC-GATAGATC_S35_L002_R1_001.fastq.gz -2 CRN_B1_CTGCTTCC-GATAGATC_S35_L002_R2_001.fastq.gz -S CRN_B1_sam 
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 CRN_B2_TCATCCTT-AGCGAGCT_S36_L002_R1_001.fastq.gz -2 CRN_B2_TCATCCTT-AGCGAGCT_S36_L002_R2_001.fastq.gz -S CRN_B2_sam 
+hisat2 -p 8 --dta -x /pine/scr/a/j/ajohn46/HTSF_RNAseq/reference/ncbi-genomes-2020-06-22/ref_index/ath -1 CRN_B3_AGGTTATA-CAGTTCCG_S37_L002_R1_001.fastq.gz -2 CRN_B3_AGGTTATA-CAGTTCCG_S37_L002_R2_001.fastq.gz -S CRN_B3_sam
+
+#convert sam to bam format
+samtools view -bS COL-0_B1_sam >UCOL-0_B1_dta.bam
+samtools sort -@ 8 -o COL-0_B1_dta.bam UCOL-0_B1_dta.bam
+
+samtools view -bS COL-0_B2_sam >UCOL-0_B2_dta.bam
+samtools sort -@ 8 -o COL-0_B2_dta.bam UCOL-0_B2_dta.bam
+
+samtools view -bS COL-0_B3_sam >UCOL-0_B3_dta.bam
+samtools sort -@ 8 -o COL-0_B3_dta.bam UCOL-0_B3_dta.bam
+
+samtools view -bS CRN_B1_sam >UCRN_B1_dta.bam
+samtools sort -@ 8 -o CRN_B1_dta.bam UCRN_B1_dta.bam
+
+samtools view -bS CRN_B2_sam >UCRN_B2_dta.bam
+samtools sort -@ 8 -o CRN_B2_dta.bam UCRN_B2_dta.bam
+
+samtools view -bS CRN_B3_sam >UCRN_B3_dta.bam
+samtools sort -@ 8 -o CRN_B3_dta.bam UCRN_B3_dta.bam
+
+#use featureCounts to count reads
+module load subread
+
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o COL-0_B2_dta.txt COL-0_B2_dta.bam
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o COL-0_B1_dta.txt COL-0_B1_dta.bam
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o COL-0_B3_dta.txt COL-0_B3_dta.bam
+
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o CRN_B1_dta.txt CRN_B1_dta.bam
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o CRN_B2_dta.txt CRN_B2_dta.bam
+featureCounts -p -a ncbi-genomes-2020-06-27/GCF_000001735.4_TAIR10.1_genomic.gtf -t exon -g gene_id -o CRN_B3_dta.txt CRN_B3_dta.bam
+
+##########____##########____##########____##########_RStudio_##########____##########____##########____##########
+
+
+##########____##########____##########____##########_RStudio_##########____##########____##########____##########
+
+
+##########____##########____##########____##########_RStudio_##########____##########____##########____##########
+
+
+##########____##########____##########____##########_RStudio_##########____##########____##########____##########
+
+
+##########____##########____##########____##########_RStudio_##########____##########____##########____##########
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("EDASeq")
+BiocManager::install("purrr")
+BiocManager::install("tidyverse")
+BiocManager::install("edgeR")
+BiocManager::install("RUVSeq")
+install.packages("statmod")
+> no # to install sources from compilation
+
+library(BiocManager)
+library(EDASeq)
+library(purrr)
+library(tidyverse)
+library(readr)
+library(edgeR)
+library(RUVSeq)
+library(statmod)
+library(RColorBrewer)
+
+#grab the files
+setwd("/Users/amalajohn/Documents/RNAseq/fcounts_all")
+f_files<- list.files("/Users/amalajohn/Documents/RNAseq/fcounts_all/clv3_counts", pattern = "*.txt", full.names = TRUE)
+read_in_feature_counts<- function(file){
+       cnt<- read_tsv(file, col_names =TRUE, comment = "#")
+       cnt<- cnt %>% dplyr::select(-Chr, -Start, -End, -Strand, -Length)
+       return(cnt)
+}
+
+raw_counts<- map(f_files, read_in_feature_counts)
+raw_counts_df<- purrr::reduce(raw_counts, inner_join)
+data_raw<-raw_counts_df
+
+////////#example txt file////////////////////////////////////////////////////////////////////////
+##target3_colclv3.txt
+sample	group
+COL-0_B1	WT
+COL-0_B2	WT
+COL-0_B3	WT
+CLV3_B1	clv3
+CLV3_B2	clv3
+CLV3_B3	clv3
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+#change directory to the one with the txt file above
+setwd("/Users/amalajohn/Documents/RNAseq/fcounts_all")
+target3 <- read.delim("/Users/amalajohn/Documents/RNAseq/fcounts_all/target3_colclv3.txt", stringsAsFactors=FALSE)
+group2 <- paste(target3$group)
+group3 <- factor(group2)
+
+z <- DGEList(counts=raw_counts_df[,-1],group=group3,genes=raw_counts_df[,1,drop=FALSE])
+options(digits=3)
+
+#to converge lists later
+geneids<-z$genes
+geneids<-as.character(geneids[,1])
+z2<-as.matrix(z)
+rownames(z2)<-geneids
+write.csv(geneids, "/Users/amalajohn/Documents/RNAseq/fcounts_all/CLV3geneids.csv")
+
+keep <- filterByExpr(z)
+z <- z[keep, , keep.lib.sizes=FALSE]
+table(keep)
+
+output:
+keep
+FALSE  TRUE 
+26529 10738 
+
+x <- as.factor(rep(c("clv3", "WT"), each=3))
+set <- newSeqExpressionSet(as.matrix(z), phenoData = data.frame(x, row.names=colnames(z)))
+pData(set)
+
+Output:
+
+                    x
+CLV3_B1_dta.bam  clv3
+CLV3_B2_dta.bam  clv3
+CLV3_B3_dta.bam  clv3
+COL-0_B1_dta.bam   WT
+COL-0_B2_dta.bam   WT
+COL-0_B3_dta.bam   WT
+
+
+
+#Plots
+colors <- brewer.pal(3, "Set2")
+plotRLE(set, outline=FALSE, ylim=c(-4, 4), col=colors[x]) 
+plotPCA(set, col=colors[x], cex=1.2)
+
+#more normalization, upper quartile median 
+set <- betweenLaneNormalization(set, which="upper")
+design <- model.matrix(~x, data=pData(set))
+z <- DGEList(counts=counts(set), group=x)
+z <- calcNormFactors(z, method="upperquartile") 
+z <- estimateGLMCommonDisp(z, design)
+z <- estimateGLMTagwiseDisp(z, design)
+fit <- glmFit(z, design) 
+lrt <- glmLRT(fit, contrast=c(1,-1)) 
+top <- topTags(lrt, n=nrow(set))$table
+
+#RUVSeq
+empirical <- rownames(set)[which(!(rownames(set) %in% rownames(top)[1:5000]))]
+set2 <- RUVg(set, empirical, k=1)
+pData(set2)
+
+output:
+
+                    x     W_1
+CLV3_B1_dta.bam  clv3  0.0101
+CLV3_B2_dta.bam  clv3 -0.8642
+CLV3_B3_dta.bam  clv3  0.0411
+COL-0_B1_dta.bam   WT  0.1907
+COL-0_B2_dta.bam   WT  0.2076
+COL-0_B3_dta.bam   WT  0.4147
+
+
+#new Plots
+plotRLE(set2, outline=FALSE, ylim=c(-1, 1), col=colors[x])
+plotPCA(set2, col=colors[x], cex=1.2)
+
+z <- DGEList(counts=counts(set2), group=x)
+keep <- filterByExpr(z)
+z <- z[keep, , keep.lib.sizes=FALSE]
+z <- calcNormFactors(z)
+
+design <- model.matrix(~0+group3) 
+colnames(design) <- levels(group3)
+
+z <- estimateDisp(z, design, robust=TRUE)
+fit <- glmQLFit(z, design, robust=TRUE)
+
+#comparison
+CLV3vsWT <- makeContrasts(WT-clv3, levels=design) 
+res1 <- glmQLFTest(fit, contrast=CLV3vsWT)
+
+is.de1 <- decideTestsDGE(res1, p.value=0.01)
+plotMD(res1, status=is.de1, values=c(1,-1), col=c("red","blue"), xlab = "Average logCPM", ylab = "logFC", ylim = c(-10, 10), legend=FALSE)
+#further analysis based on p-value is done in excel file
+
+
+#only does the top 
+topTags(res1, n=4000)-> ddd  
+ff <- as.data.frame(ddd[["table"]])
+write.csv(ff, "/Users/amalajohn/Documents/RNAseq/fcounts_all/clv3_col2.csv")
+
+
+
